@@ -1,2 +1,2 @@
 # Timmy
- Verpak bot Future RP
+Verpak bot voor fiveM servers
