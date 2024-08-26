@@ -5,18 +5,23 @@ import cv2
 import numpy as np
 import time
 from pynput.keyboard import Key, Listener, Controller
+from win32api import GetSystemMetrics
 
-# Global variable to track if the Alt key is pressed
+
+Width = GetSystemMetrics(0)
+Height = GetSystemMetrics(1)
+print(Height)
+Scale = int(Height / 1080)
+
 alt_down = False
-
-
 Coke = "Sugar.png"
 
-# Define the offsets
-x_offset = -10
-y_offset = -20
+#offsets
+x_offset = -5 * Scale
+y_offset = -10 * Scale
+
 # Define the initial position
-pos1 = (990*2, 530*2)
+pos1 = (990*Scale, 530*Scale)
 
 def load_image(image_path):
     return cv2.imread(image_path, cv2.IMREAD_COLOR)
@@ -46,6 +51,7 @@ def click_image(location, size):
 def open_menu():
     pywinauto.mouse.press(button='left', coords=(0, 0))
     pywinauto.mouse.release(button='left', coords=(0, 0))
+    pywinauto.mouse.click(button='left', coords=(pos1)) 
 
 def on_press(key):
     global alt_down
@@ -78,7 +84,7 @@ def main():
         else:
             print("Alt key is not pressed. No action taken.")
 
-        time.sleep(0.5)
+        time.sleep(2.5)
 
 if __name__ == "__main__":
     # Run the listener in a separate thread
