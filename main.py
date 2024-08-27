@@ -4,28 +4,28 @@ import pyautogui
 import cv2
 import numpy as np
 import time
-from pynput.keyboard import Key, Listener, Controller
+from pywinauto.keyboard import send_keys
+from pynput.keyboard import Key, Listener
 from win32api import GetSystemMetrics
 
-
+# Screen dimensions and scaling
 Width = GetSystemMetrics(0)
 Height = GetSystemMetrics(1)
-print(Height)
 Scale = int(Height / 1080)
 
-alt_down = False
+# Toggle state for F10
+toggle_active = False
 Coke = "Sugar.png"
 
-#offsets
+# Offsets
 x_offset = -5 * Scale
 y_offset = -10 * Scale
 
 # Define the initial position
-pos1 = (990*Scale, 530*Scale)
+pos1 = (990 * Scale, 530 * Scale)
 
 def load_image(image_path):
     return cv2.imread(image_path, cv2.IMREAD_COLOR)
-
 
 def find_image_on_screen(image, confidence=0.8):
     screenshot = pyautogui.screenshot()
@@ -49,41 +49,42 @@ def click_image(location, size):
     pywinauto.mouse.release(button='left', coords=(center_x, center_y))
 
 def open_menu():
+    send_keys('{J down}')
     pywinauto.mouse.press(button='left', coords=(0, 0))
     pywinauto.mouse.release(button='left', coords=(0, 0))
-    pywinauto.mouse.click(button='left', coords=(pos1)) 
+    pywinauto.mouse.click(button='left', coords=(pos1))
+    send_keys('{J up}')
 
 def on_press(key):
-    global alt_down
-    if key == Key.alt_l or key == Key.alt_r:  # Check both left and right Alt keys
-        alt_down = True
+    global toggle_active
+    if key == Key.f10:
+        toggle_active = not toggle_active  # Toggle the active state
+        print(f"F10 pressed. Toggle is now {'active' if toggle_active else 'inactive'}.")
 
 def on_release(key):
-    global alt_down
-    if key == Key.alt_l or key == Key.alt_r:  # Check both left and right Alt keys
-        alt_down = False
-        print("Alt key released")
+    # No action needed on key release in this versionj
+    pass
 
 def main():
-    global alt_down
-    controller = Controller()
+    global toggle_active
     
     while True:
-        # Load the image
-        image = load_image(Coke)
-        
-        # Search for the image on the screen 
-        location, size = find_image_on_screen(image, confidence=0.8)
+        if toggle_active:
+            # Load the image
+            image = load_image(Coke)
+            
+            # Search for the image on the screen 
+            location, size = find_image_on_screen(image, confidence=0.8)
 
-        if location and alt_down:
-            print(f"Image found at location: {location} with size: {size}")
-            click_image(location, size)
-        elif not location and alt_down:
-            open_menu()
-            print("Image not found on the screen.")
+            if location:
+                print(f"Image found at location: {location} with size: {size}")
+                click_image(location, size)
+            else:
+                open_menu()
+                print("Image not found on the screen. 'J' key pressed to open the menu.")
         else:
-            print("Alt key is not pressed. No action taken.")
-
+            print("Toggle is inactive. No action taken.")
+        
         time.sleep(2.5)
 
 if __name__ == "__main__":
