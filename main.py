@@ -1,96 +1,42 @@
-import sys
-import pywinauto
-import pyautogui
-import cv2
-import numpy as np
+import threading
 import time
-from pywinauto.keyboard import send_keys
-from pynput.keyboard import Key, Listener
-from win32api import GetSystemMetrics
+from tkinter import StringVar
+from gui import Application
+from input_handling import start_listener
+from image_processing import load_image, find_image_on_screen, click_image, open_menu
+from config import load_config
 
-# Screen dimensions and scaling
-Width = GetSystemMetrics(0)
-Height = GetSystemMetrics(1)
-Scale = int(Height / 1080)
-
-# Toggle state for F10
-toggle_active = False
-Coke = "Sugar.png"
-
-# Offsets
-x_offset = -5 * Scale
-y_offset = -10 * Scale
-
-# Define the initial position
-pos1 = (990 * Scale, 530 * Scale)
-
-def load_image(image_path):
-    return cv2.imread(image_path, cv2.IMREAD_COLOR)
-
-def find_image_on_screen(image, confidence=0.8):
-    screenshot = pyautogui.screenshot()
-    screenshot_np = np.array(screenshot)
-    screenshot_gray = cv2.cvtColor(screenshot_np, cv2.COLOR_BGR2GRAY)
-    image_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    result = cv2.matchTemplate(screenshot_gray, image_gray, cv2.TM_CCOEFF_NORMED)
-    min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
-    
-    if max_val >= confidence:
-        return max_loc, image.shape[1::-1]  # (x, y), (width, height)
-    else:
-        return None, None
-
-def click_image(location, size):
-    x, y = location
-    width, height = size
-    center_x = x + width // 2 + x_offset
-    center_y = y + height // 2 + y_offset
-    pywinauto.mouse.press(button='left', coords=(center_x, center_y))
-    pywinauto.mouse.release(button='left', coords=(center_x, center_y))
-
-def open_menu():
-    send_keys('{J down}')
-    pywinauto.mouse.press(button='left', coords=(0, 0))
-    pywinauto.mouse.release(button='left', coords=(0, 0))
-    pywinauto.mouse.click(button='left', coords=(pos1))
-    send_keys('{J up}')
-
-def on_press(key):
-    global toggle_active
-    if key == Key.f10:
-        toggle_active = not toggle_active  # Toggle the active state
-        print(f"F10 pressed. Toggle is now {'active' if toggle_active else 'inactive'}.")
-
-def on_release(key):
-    # No action needed on key release in this versionj
-    pass
-
-def main():
-    global toggle_active
+def main_loop(app):
+    config = load_config()
+    toggle_active = False
+    click_count = 0
     
     while True:
         if toggle_active:
-            # Load the image
-            image = load_image(Coke)
-            
-            # Search for the image on the screen 
+            image = load_image("Sugar.png")
             location, size = find_image_on_screen(image, confidence=0.8)
-
+            
             if location:
-                print(f"Image found at location: {location} with size: {size}")
-                click_image(location, size)
+                click_image(location, size, config["image_x_offset"], config["image_y_offset"])
+                click_count += 1
+                app.click_count_text.set(f"Clicks: {click_count}")
             else:
-                open_menu()
-                print("Image not found on the screen. 'J' key pressed to open the menu.")
+                open_menu(config["menu_x_offset"], config["menu_y_offset"], (990 * Scale, 530 * Scale))
+                app.status_text.set("Image not found. Menu opened.")
         else:
-            print("Toggle is inactive. No action taken.")
+            app.status_text.set("Inactive")
         
         time.sleep(2.5)
 
 if __name__ == "__main__":
-    # Run the listener in a separate thread
-    listener = Listener(on_press=on_press, on_release=on_release)
-    listener.start()
+    app = Application()
     
-    # Start the main loop
-    main()
+    # Start the keyboard listener
+    start_listener(app.status_text)
+    
+    # Start the main processing loop in a separate thread
+    processing_thread = threading.Thread(target=main_loop, args=(app,), daemon=True)
+    processing_thread.start()
+    
+    # Start the GUI event loop
+    app.mainloop()
