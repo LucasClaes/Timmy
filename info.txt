@@ -1,0 +1,3 @@
+open = "1"
+Action png -> click somewhere(sound ?)
+Done(Bewaren) -> 3sec wait

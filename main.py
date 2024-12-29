@@ -15,21 +15,21 @@ Scale = int(Height / 1080)
 
 # Toggle state for F10
 toggle_active = False
-Coke = "Sugar.png"
+#Coke = "Sugar.png"
 
 # Offsets
 x_offset = -5 * Scale
 y_offset = -10 * Scale
 
 # Define the initial position
-pos1 = (990 * Scale, 530 * Scale)
+#pos1 = (990 * Scale, 530 * Scale)
 
 def load_image(image_path):
-    return cv2.imread(image_path, cv2.IMREAD_COLOR)
+    return cv2.imread(image_path, cv2.IMREAD_COLOR)j
 
 def find_image_on_screen(image, confidence=0.8):
     screenshot = pyautogui.screenshot()
-    screenshot_np = np.array(screenshot)
+    screenshot_np = np.array(screenshot)j
     screenshot_gray = cv2.cvtColor(screenshot_np, cv2.COLOR_BGR2GRAY)
     image_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     result = cv2.matchTemplate(screenshot_gray, image_gray, cv2.TM_CCOEFF_NORMED)
@@ -40,20 +40,20 @@ def find_image_on_screen(image, confidence=0.8):
     else:
         return None, None
 
-def click_image(location, size):
-    x, y = location
-    width, height = size
-    center_x = x + width // 2 + x_offset
-    center_y = y + height // 2 + y_offset
-    pywinauto.mouse.press(button='left', coords=(center_x, center_y))
-    pywinauto.mouse.release(button='left', coords=(center_x, center_y))
+# def click_image(location, size):
+#     x, y = location
+#     width, height = size
+#     center_x = x + width // 2 + x_offset
+#     center_y = y + height // 2 + y_offset
+#     pywinauto.mouse.press(button='left', coords=(center_x, center_y))
+#     pywinauto.mouse.release(button='left', coords=(center_x, center_y))
 
-def open_menu():
-    send_keys('{J down}')
-    pywinauto.mouse.press(button='left', coords=(0, 0))
-    pywinauto.mouse.release(button='left', coords=(0, 0))
-    pywinauto.mouse.click(button='left', coords=(pos1))
-    send_keys('{J up}')
+# def open_menu():
+#     send_keys('{J down}')
+#     pywinauto.mouse.press(button='left', coords=(0, 0))
+#     pywinauto.mouse.release(button='left', coords=(0, 0))
+#     pywinauto.mouse.click(button='left', coords=(pos1))
+#     send_keys('{J up}')
 
 def on_press(key):
     global toggle_active
@@ -61,9 +61,9 @@ def on_press(key):
         toggle_active = not toggle_active  # Toggle the active state
         print(f"F10 pressed. Toggle is now {'active' if toggle_active else 'inactive'}.")
 
-def on_release(key):
-    # No action needed on key release in this versionj
-    pass
+# def on_release(key):
+#     # No action needed on key release in this version
+#     pass
 
 def main():
     global toggle_active
